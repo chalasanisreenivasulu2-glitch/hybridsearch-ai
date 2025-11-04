@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ query }} - HybridSearch AI</title>
+    
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- html2pdf for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-tertiary: #999;
+            --border-color: #f3f4f6;
+            --primary-color: #667eea;
+            --primary-hover: #5568d3;
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --card-bg: rgba(42, 42, 60, 0.95);
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #71717a;
+            --border-color: #3f3f46;
+            --primary-color: #818cf8;
+            --primary-hover: #6366f1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .logo {
+            font-size: 2em;
+            cursor: pointer;
+        }
+
+        .search-box-small {
+            display: flex;
+            align-items: center;
+            background: var(--border-color);
+            border-radius: 25px;
+            padding: 8px 15px;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-input-small {
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 8px;
+            font-size: 1em;
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        .search-btn-small {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .search-btn-small:hover {
+            background: var(--primary-hover);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: var(--border-color);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .back-btn {
+            background: var(--border-color);
+            color: var(--primary-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .query-display {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .query-display h2 {
+            color: var(--text-primary);
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .model-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .answer-section {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .answer-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .answer-header h3 {
+            color: var(--primary-color);
+            font-size: 1.3em;
+        }
+
+        .answer-content {
+            color: var(--text-primary);
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+
+        /* Markdown styling */
+        .answer-content h1, .answer-content h2, .answer-content h3 {
+            color: var(--text-primary);
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+
+        .answer-content ul, .answer-content ol {
+            margin-left: 1.5em;
+            margin-bottom: 1em;
+        }
+
+        .answer-content li {
+            margin-bottom: 0.5em;
+        }
+
+        .answer-content p {
+            margin-bottom: 1em;
+        }
+
+        .answer-content strong {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .answer-content code {
+            background: var(--border-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .answer-content pre {
+            background: var(--border-color);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 1em;
+        }
+
+        .sources-section {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sources-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .sources-header h3 {
+            color: var(--primary-color);
+            font-size: 1.3em;
+        }
+
+        .source-card {
+            background: var(--border-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .source-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .source-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .source-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .source-snippet {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .source-url {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.9em;
+            word-break: break-all;
+        }
+
+        .source-url:hover {
+            text-decoration: underline;
+        }
+
+        .source-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 10px;
+            opacity: 0.8;
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 30px;
+            font-size: 0.9em;
+        }
+
+        /* Export Menu */
+        .export-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .export-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            min-width: 150px;
+            z-index: 1000;
+        }
+
+        .export-dropdown.show {
+            display: block;
+        }
+
+        .export-option {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .export-option:last-child {
+            border-bottom: none;
+        }
+
+        .export-option:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .rate-limit-notice {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        [data-theme="dark"] .rate-limit-notice {
+            background: #78350f;
+            color: #fef3c7;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box-small {
+                min-width: 100%;
+            }
+
+            .header-actions {
+                justify-content: space-between;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Search -->
+        <div class="header">
+            <div class="logo-section">
+                <span class="logo" onclick="window.location.href='/'">🔍</span>
+                <form action="/search" method="POST" style="flex: 1; display: flex;">
+                    <div class="search-box-small">
+                        <input 
+                            type="text" 
+                            name="query" 
+                            class="search-input-small" 
+                            placeholder="Ask another question..."
+                            value="{{ query }}"
+                            list="suggestions"
+                        >
+                        <datalist id="suggestions"></datalist>
+                        <button type="submit" class="search-btn-small">Search</button>
+                    </div>
+                </form>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="toggleTheme()" title="Toggle Dark Mode">🌓</button>
+                <div class="export-menu">
+                    <button class="icon-btn" onclick="toggleExportMenu()" title="Export Results">💾</button>
+                    <div class="export-dropdown" id="exportMenu">
+                        <div class="export-option" onclick="exportMarkdown()">📝 Markdown</div>
+                        <div class="export-option" onclick="exportPDF()">📄 PDF</div>
+                        <div class="export-option" onclick="exportText()">📋 Text</div>
+                    </div>
+                </div>
+                <a href="/" class="back-btn">← Home</a>
+            </div>
+        </div>
+
+        <!-- Rate Limit Notice (if applicable) -->
+        {% if rate_limit_remaining is defined and rate_limit_remaining < 10 %}
+        <div class="rate-limit-notice">
+            ⚠️ API Rate Limit: {{ rate_limit_remaining }} searches remaining this hour
+        </div>
+        {% endif %}
+
+        <!-- Query Display -->
+        <div class="query-display">
+            <h2>{{ query }}</h2>
+            <span class="model-badge">{{ model_info.backend }} - {{ model_info.model }}</span>
+        </div>
+
+        <!-- AI Answer -->
+        <div class="answer-section" id="answerSection">
+            <div class="answer-header">
+                <span style="font-size: 1.5em;">🤖</span>
+                <h3>AI Answer</h3>
+            </div>
+            <div class="answer-content" id="answerContent">
+                <!-- Markdown will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Sources -->
+        <div class="sources-section">
+            <div class="sources-header">
+                <span style="font-size: 1.5em;">📚</span>
+                <h3>Sources</h3>
+            </div>
+
+            {% if sources %}
+                {% for source in sources %}
+                <div class="source-card">
+                    <div>
+                        <span class="source-number">{{ loop.index }}</span>
+                        <span class="source-title">{{ source.title }}</span>
+                        {% if source.source %}
+                        <span class="source-badge">{{ source.source }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="source-snippet">{{ source.snippet }}</p>
+                    <a href="{{ source.url }}" target="_blank" class="source-url">
+                        {{ source.url }}
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; color: var(--text-tertiary); padding: 20px;">
+                    <p>No sources available</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <p>HybridSearch AI - Your Intelligent Search Assistant</p>
+        </div>
+    </div>
+
+    <script>
+        // Store answer as markdown
+        const answerMarkdown = {{ answer|tojson }};
+        const queryText = {{ query|tojson }};
+        
+        // Render markdown on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const answerContent = document.getElementById('answerContent');
+            answerContent.innerHTML = marked.parse(answerMarkdown);
+            
+            // Load theme preference
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Load search suggestions
+            loadSuggestions();
+        });
+
+        // Dark mode toggle
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Export menu toggle
+        function toggleExportMenu() {
+            const menu = document.getElementById('exportMenu');
+            menu.classList.toggle('show');
+        }
+
+        // Close export menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const exportMenu = document.querySelector('.export-menu');
+            if (!exportMenu.contains(event.target)) {
+                document.getElementById('exportMenu').classList.remove('show');
+            }
+        });
+
+        // Export as Markdown
+        function exportMarkdown() {
+            const sourcesText = {% if sources %}
+                {{ sources|tojson }}
+                .map((s, i) => `${i + 1}. [${s.title}](${s.url})\n   ${s.snippet}`)
+                .join('\n\n')
+            {% else %}
+                ''
+            {% endif %};
+            
+            const markdown = `# ${queryText}\n\n## AI Answer\n\n${answerMarkdown}\n\n## Sources\n\n${sourcesText}`;
+            
+            downloadFile(markdown, `${sanitizeFilename(queryText)}.md`, 'text/markdown');
+        }
+
+        // Export as PDF
+        function exportPDF() {
+            const element = document.querySelector('.container');
+            const opt = {
+                margin: 1,
+                filename: `${sanitizeFilename(queryText)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // Export as Text
+        function exportText() {
+            const sourcesText = {% if sources %}
+                {{ sources|tojson }}
+                .map((s, i) => `${i + 1}. ${s.title}\n   ${s.snippet}\n   ${s.url}`)
+                .join('\n\n')
+            {% else %}
+                ''
+            {% endif %};
+            
+            const text = `${queryText}\n${'='.repeat(queryText.length)}\n\nAI Answer:\n${answerMarkdown}\n\nSources:\n${sourcesText}`;
+            
+            downloadFile(text, `${sanitizeFilename(queryText)}.txt`, 'text/plain');
+        }
+
+        // Download file helper
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Close export menu
+            document.getElementById('exportMenu').classList.remove('show');
+        }
+
+        // Sanitize filename
+        function sanitizeFilename(name) {
+            return name.replace(/[^a-z0-9]/gi, '_').toLowerCase().substring(0, 50);
+        }
+
+        // Load search suggestions from history
+        function loadSuggestions() {
+            fetch('/history')
+                .then(response => response.json())
+                .then(data => {
+                    const datalist = document.getElementById('suggestions');
+                    data.history.slice(0, 10).forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.query;
+                        datalist.appendChild(option);
+                    });
+                })
+                .catch(error => console.log('Could not load suggestions'));
+        }
+    </script>
+</body>
+</html>
